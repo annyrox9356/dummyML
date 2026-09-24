@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f4ef">
+  <meta name="description" content="Find your exact age in years, months, and days with a simple age calculator.">
+  <title>Age Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="calculator">
+    <p class="brand"><span class="brand-mark" aria-hidden="true">◷</span> LITTLE LIFE TOOLS</p>
+    <section class="card" aria-labelledby="page-title">
+      <h1 id="page-title">Age calculator</h1>
+      <p class="intro">Curious how long it’s been? Enter your date of birth to see your exact age.</p>
+      <form id="age-form" novalidate>
+        <label for="birth-date">Your date of birth</label>
+        <input id="birth-date" name="birth-date" type="date" required aria-describedby="date-hint error-message">
+        <p class="hint" id="date-hint">We’ll calculate your age as of today.</p>
+        <button type="submit">Calculate my age</button>
+        <p class="error" id="error-message" role="alert" aria-live="polite"></p>
+      </form>
+      <section class="result" id="result" aria-live="polite" aria-atomic="true" hidden>
+        <p class="result-title">You are</p>
+        <div class="age">
+          <div class="age-part"><strong id="years">0</strong><span>years</span></div>
+          <div class="age-part"><strong id="months">0</strong><span>months</span></div>
+          <div class="age-part"><strong id="days">0</strong><span>days</span></div>
+        </div>
+      </section>
+    </section>
+    <p class="footer">Your date stays in your browser.</p>
+  </main>
+  <script>
+    const form = document.querySelector('#age-form');
+    const dateInput = document.querySelector('#birth-date');
+    const errorMessage = document.querySelector('#error-message');
+    const result = document.querySelector('#result');
+
+    // Use local calendar dates so time zones and daylight saving do not shift the result.
+    const today = new Date();
+    const todayString = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+    dateInput.max = todayString;
+
+    function daysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      errorMessage.textContent = '';
+      result.hidden = true;
+
+      if (!dateInput.value) {
+        errorMessage.textContent = 'Please enter your date of birth.';
+        dateInput.focus();
+        return;
+      }
+
+      const [birthYear, birthMonth, birthDay] = dateInput.value.split('-').map(Number);
+      const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+      const now = new Date();
+      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      if (birthDate > currentDate) {
+        errorMessage.textContent = 'Your date of birth can’t be in the future.';
+        dateInput.focus();
+        return;
+      }
+
+      let years = now.getFullYear() - birthYear;
+      let months = now.getMonth() - (birthMonth - 1);
+      let days = now.getDate() - birthDay;
+
+      if (days < 0) {
+        months -= 1;
+        days += daysInMonth(now.getFullYear(), now.getMonth() - 1);
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      document.querySelector('#years').textContent = years;
+      document.querySelector('#months').textContent = months;
+      document.querySelector('#days').textContent = days;
+      result.hidden = false;
+    });
+  </script>
+</body>
+</html>
